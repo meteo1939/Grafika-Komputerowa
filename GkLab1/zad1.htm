@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+
+    <title>tak</title>
+    <style>
+        body {
+            background-color: #DDDDDD;
+        }
+        canvas {
+            background-color: white;
+            display: block;
+        }
+        #canvasholder {
+            border:2px solid black;
+            float: left;
+        }
+    </style>
+    <script>
+
+        "use strict";
+
+        var canvas;
+        var graphics;
+
+        function draw() {
+
+            graphics.clearRect(0,0,600,600);
+
+           
+            graphics.beginPath();
+            graphics.arc(250, 250, 100, 0, 2 * Math.PI);  
+            graphics.fillStyle = "red";
+            graphics.fill();
+            graphics.stroke();
+
+           
+            graphics.beginPath();
+            graphics.fillStyle = "white";
+            graphics.strokeStyle ="white";
+            graphics.fillCircle(210, 230, 8);  
+            graphics.fillCircle(290, 230, 8);  
+            graphics.fill();
+
+            graphics.fillStyle = "black";
+            graphics.strokeStyle ="black";
+            graphics.fillCircle(210, 230, 4);  
+            graphics.fillCircle(290, 230, 4);  
+            graphics.fill();
+
+            graphics.fillStyle = "white";
+            graphics.fillCircle(207.8, 228.5, 1.5); 
+            graphics.fillCircle(287.8, 228.5, 2);  
+            graphics.fill();
+            graphics.stroke();
+
+           
+            graphics.beginPath();
+            graphics.fillStyle = "black";
+            graphics.strokeStyle ="black";
+            graphics.moveTo(215, 275);  
+            graphics.bezierCurveTo(225, 290, 245, 290, 255, 275); 
+            graphics.bezierCurveTo(245, 280, 225, 280, 215, 275);  
+            graphics.fill();
+            graphics.moveTo(214, 270); 
+            graphics.bezierCurveTo(214.5, 275, 214.5, 275, 212, 277);  
+            graphics.moveTo(256, 270);  
+            graphics.bezierCurveTo(254.5, 275, 254.5, 275, 258.5, 277); 
+            graphics.stroke();
+
+            graphics.beginPath();
+            graphics.fillStyle = "white";
+            graphics.moveTo(235, 279.5);  
+            graphics.lineTo(235, 282.5);
+            graphics.lineTo(231, 282.5);
+            graphics.lineTo(231, 279.5);
+            graphics.moveTo(235, 282.5);
+            graphics.lineTo(239, 282.5);
+            graphics.lineTo(239, 279.5);
+            graphics.lineTo(235, 279.5);
+            graphics.lineTo(231, 279.5);
+            graphics.fill();
+            graphics.stroke();
+            graphics.closePath();
+
+        }
+
+        function addGraphicsContextExtras(graphics) {
+            graphics.strokeLine = function(x1,y1,x2,y2) {
+                this.beginPath();
+                this.moveTo(x1,y1);
+                this.lineTo(x2,y2);
+                this.stroke();
+            }
+            graphics.fillCircle = function(x,y,r) {
+                this.beginPath();
+                this.arc(x,y,r,0,2*Math.PI,false);
+                this.fill();
+            }
+            graphics.strokeCircle = function(x,y,radius) {
+                this.beginPath();
+                this.arc(x,y,radius,0,2*Math.PI,false);
+                this.stroke();
+            }
+            graphics.fillPoly = function() {
+                if (arguments.length < 6)
+                    return;
+                this.beginPath();
+                this.moveTo(arguments[0],arguments[1]);
+                for (var i = 2; i+1 < arguments.length; i = i + 2) {
+                    this.lineTo(arguments[i],arguments[i+1]);
+                }
+                this.closePath();
+                this.fill();
+            }
+            graphics.strokePoly = function() {
+                if (arguments.length < 4)
+                    return;
+                this.beginPath();
+                this.moveTo(arguments[0],arguments[1]);
+                for (var i = 2; i+1 < arguments.length; i = i + 2) {
+                    this.lineTo(arguments[i],arguments[i+1]);
+                }
+                this.closePath();
+                this.stroke();
+            }
+            graphics.fillOval = function(x,y,horizontalRadius,verticalRadius) {
+                this.save();
+                this.translate(x,y);
+                this.scale(horizontalRadius,verticalRadius);
+                this.beginPath();
+                this.arc(0,0,1,0,2*Math.PI,false);
+                this.restore();
+                this.fill();
+            }
+            graphics.strokeOval = function(x,y,horizontalRadius,verticalRadius) {
+                this.save();
+                this.translate(x,y);
+                this.scale(horizontalRadius,verticalRadius);
+                this.beginPath();
+                this.arc(0,0,1,0,2*Math.PI,false);
+                this.restore();
+                this.stroke();
+            }
+            graphics.getRGB = function(x,y) {
+                var color = this.getImageData(x,y,1,1);
+                return color.data;
+            }
+        }
+
+        function init() {
+            try {
+                canvas = document.getElementById("canvas");
+                graphics = canvas.getContext("2d");
+            } catch(e) {
+                document.getElementById("canvasholder").innerHTML =
+                    "Canvas graphics is not supported.<br>" +
+                    "An error occurred while initializing graphics.";
+            }
+            addGraphicsContextExtras(graphics);
+            draw();
+        }
+
+    </script>
+
+<body onload="init()">
+
+<h2>zadanie 1</h2>
+
+<noscript>
+    <p>JavaScript is required to use this page.</p>
+</noscript>
+
+<div id="canvasholder">
+    <canvas id="canvas" width="600" height="600">
+        Canvas not supported.
+    </canvas>
+</div>
+
+</body></html>

@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Corkscrew Example</title>
+<script src="glsim.js"></script>
+<script>
+    let rotateX = 15;   // Rotacje początkowe
+    let rotateY = -15;
+    let rotateZ = 0;
+
+    function drawCorkscrew() {
+        glPointSize(1.0);  // Początkowy rozmiar punktu
+        glColor3f(0, 1, 0);  // Zielony kolor
+
+        glBegin(GL_POINTS);
+        const steps = 100;  // Liczba punktów na obrót
+        for (let i = 0; i < 5 * steps; i++) {  // 5 obrotów
+            let t = i / steps;  // Parametr czasu
+            let radius = 0.1 * t;  // Promień rośnie liniowo
+            let x = radius * Math.cos(t * 2 * Math.PI);  // Współrzędna X
+            let y = radius * Math.sin(t * 2 * Math.PI);  // Współrzędna Y
+            let z = t * 0.1;  // Współrzędna Z (oś Z jako główna)
+            glPointSize(1.0 + t * 0.5);  // Rozmiar punktu rośnie
+            glVertex3f(x, y, z);  // Rysowanie punktu
+        }
+        glEnd();
+    }
+
+    function display() {
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+        glLoadIdentity();
+        glRotatef(rotateZ, 0, 0, 1);
+        glRotatef(rotateY, 0, 1, 0);
+        glRotatef(rotateX, 1, 0, 0);
+
+        drawCorkscrew();
+    }
+
+    function initGL() {
+        glMatrixMode(GL_PROJECTION);
+        glOrtho(-2, 2, -2, 2, -2, 10);  // Widok dostosowany do korkociągu
+        glMatrixMode(GL_MODELVIEW);
+        glEnable(GL_DEPTH_TEST);
+        glClearColor(0, 0, 0, 1);
+    }
+
+    function doKeyDown(evt) {
+        let key = evt.keyCode;
+        if (key == 37) rotateY -= 15;  // Lewo
+        else if (key == 39) rotateY += 15;  // Prawo
+        else if (key == 40) rotateX += 15;  // Dół
+        else if (key == 38) rotateX -= 15;  // Góra
+        else if (key == 33) rotateZ += 15;  // Page Up
+        else if (key == 34) rotateZ -= 15;  // Page Down
+        else if (key == 36) rotateX = rotateY = rotateZ = 0;  // Home
+        if (key >= 34 && key <= 40) evt.preventDefault();
+        display();
+    }
+
+    function init() {
+        try {
+            glsimUse("glcanvas");
+        } catch (e) {
+            document.getElementById("canvas-holder").innerHTML = "Error: " + e;
+            return;
+        }
+        document.onkeydown = doKeyDown;
+        initGL();
+        display();
+    }
+</script>
+</head>
+<body onload="init()">
+<h3>Corkscrew with Growing Points</h3>
+<p>(Rotate using arrow keys, page up, page down, and home keys.)</p>
+<div id="canvas-holder">
+<canvas id="glcanvas" width="500" height="500"></canvas>
+</div>
+</body>
+</html>

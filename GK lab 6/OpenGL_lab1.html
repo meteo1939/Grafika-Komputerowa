@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Four Lights Demo</title>
+<script src="glsim.js"></script>
+<script>
+    let rotateX = 15;  // Obrót wokół osi X
+    let rotateY = -15; // Obrót wokół osi Y
+    let rotateZ = 0;   // Obrót wokół osi Z
+    let isDragging = false; // Czy mysz jest przeciągana
+    let lastMouseX = 0; // Ostatnia pozycja X myszy
+    let lastMouseY = 0; // Ostatnia pozycja Y myszy
+    let isShiftPressed = false; // Czy klawisz Shift jest przytrzymany
+
+    // Domyślne kolory dla piramidy (bez oświetlenia)
+    let baseColor = [0.5, 0.5, 0.5]; // Szary, gdy brak światła
+
+    // Funkcja rysująca trójkąt
+    function drawTriangle(x1, y1, x2, y2, apexX, apexY, apexZ, color) {
+        glBegin(GL_TRIANGLES);
+        glColor3f(color[0], color[1], color[2]); // Ustawienie koloru
+        glVertex3f(x1, y1, 0);
+        glVertex3f(x2, y2, 0);
+        glVertex3f(apexX, apexY, apexZ);
+        glEnd();
+    }
+
+    // Funkcja rysująca piramidę
+    function drawPyramid() {
+        glPushMatrix();
+        glScalef(1, 1, 1);
+
+        // Obliczanie koloru na podstawie aktywnych świateł
+        let whiteLight = document.getElementById("whiteLight").checked;
+        let cyanLight = document.getElementById("cyanLight").checked;
+        let currentColor = [...baseColor]; // Domyślny kolor (szary)
+
+        if (whiteLight && cyanLight) {
+            currentColor = [1, 1, 1]; // Białe światło dominuje
+        } else if (whiteLight) {
+            currentColor = [1, 1, 1]; // Białe światło
+        } else if (cyanLight) {
+            currentColor = [0, 1, 1]; // Cyjanowe światło
+        }
+
+        // Podstawa piramidy (pięciokąt)
+        glBegin(GL_TRIANGLE_FAN);
+        glColor3f(currentColor[0], currentColor[1], currentColor[2]);
+        glVertex3f(0, 0, 0);
+        for (let i = 0; i <= 5; i++) {
+            let angle = i * 2 * Math.PI / 5;
+            glVertex3f(Math.cos(angle), Math.sin(angle), 0);
+        }
+        glEnd();
+
+        // Ściany boczne
+        const apexX = 0;
+        const apexY = 0;
+        const apexZ = 1;
+        for (let i = 0; i < 5; i++) {
+            let angle1 = i * 2 * Math.PI / 5;
+            let angle2 = (i + 1) * 2 * Math.PI / 5;
+            let x1 = Math.cos(angle1);
+            let y1 = Math.sin(angle1);
+            let x2 = Math.cos(angle2);
+            let y2 = Math.sin(angle2);
+            drawTriangle(x1, y1, x2, y2, apexX, apexY, apexZ, currentColor);
+        }
+        glPopMatrix();
+    }
+
+    function display() {
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+        glLoadIdentity();
+        // Kolejność obrotów ma znaczenie: najpierw Z, potem Y, na końcu X
+        glRotatef(rotateZ, 0, 0, 1); // Obrót wokół osi Z
+        glRotatef(rotateY, 0, 1, 0); // Obrót wokół osi Y
+        glRotatef(rotateX, 1, 0, 0); // Obrót wokół osi X
+        drawPyramid();
+    }
+
+    function initGL() {
+        glMatrixMode(GL_PROJECTION);
+        glOrtho(-2, 2, -2, 2, -2, 2);
+        glMatrixMode(GL_MODELVIEW);
+        glEnable(GL_DEPTH_TEST);
+        glClearColor(0, 0, 0, 1); // Czarne tło
+    }
+
+    // Obsługa myszy
+    function initMouseControls(canvas) {
+        canvas.addEventListener("mousedown", (evt) => {
+            isDragging = true;
+            lastMouseX = evt.clientX;
+            lastMouseY = evt.clientY;
+        });
+
+        canvas.addEventListener("mousemove", (evt) => {
+            if (isDragging) {
+                let deltaX = evt.clientX - lastMouseX;
+                let deltaY = evt.clientY - lastMouseY;
+
+                if (isShiftPressed) {
+                    // Obrót wokół osi Z, gdy Shift jest przytrzymany
+                    rotateZ += deltaX * 0.5; // Czułość obrotu
+                } else {
+                    // Obrót wokół osi Y (poziomy ruch myszy)
+                    rotateY += deltaX * 0.5;
+                    // Obrót wokół osi X (pionowy ruch myszy)
+                    rotateX += deltaY * 0.5;
+                }
+
+                lastMouseX = evt.clientX;
+                lastMouseY = evt.clientY;
+                display();
+            }
+        });
+
+        canvas.addEventListener("mouseup", () => {
+            isDragging = false;
+        });
+    }
+
+    // Obsługa klawisza Shift
+    function initKeyboardControls() {
+        document.addEventListener("keydown", (evt) => {
+            if (evt.key === "Shift") {
+                isShiftPressed = true;
+            }
+        });
+
+        document.addEventListener("keyup", (evt) => {
+            if (evt.key === "Shift") {
+                isShiftPressed = false;
+            }
+        });
+    }
+
+    // Obsługa checkboxów
+    function initLightControls() {
+        document.getElementById("whiteLight").addEventListener("change", display);
+        document.getElementById("cyanLight").addEventListener("change", display);
+    }
+
+    function init() {
+        try {
+            glsimUse("glcanvas");
+        } catch (e) {
+            document.getElementById("canvas-holder").innerHTML = "Error: " + e;
+            return;
+        }
+        const canvas = document.getElementById("glcanvas");
+        initMouseControls(canvas);
+        initKeyboardControls();
+        initLightControls();
+        initGL();
+        display();
+    }
+</script>
+</head>
+<body onload="init()">
+<h3>Four Lights Demo</h3>
+<div id="canvas-holder">
+    <canvas id="glcanvas" width="500" height="500"></canvas>
+</div>
+<div>
+    <label><input type="checkbox" id="whiteLight" checked> White Light</label><br>
+    <label><input type="checkbox" id="cyanLight" checked> Cyan Light</label>
+</div>
+<p>(Drag mouse to rotate the pyramid: horizontally for Y-axis, vertically for X-axis, hold Shift and drag horizontally for Z-axis)</p>
+</body>
+</html>
